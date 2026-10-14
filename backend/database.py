@@ -1,33 +1,19 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
-from datetime import datetime
-from backend.database import Base
+from sqlalchemy import create_engine
+from sqlalchemy.orm import declarative_base, sessionmaker
 
-class User(Base):
-    __tablename__ = "users"
+from backend.config import settings
 
-    id = Column(Integer, primary_key=True, index=True)
-    telegram_id = Column(Integer, unique=True, index=True)
-    username = Column(String, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+# SQLite uchun alohida sozlama kerak (FastAPI bir nechta thread ishlatadi)
+connect_args = {"check_same_thread": False} if settings.DATABASE_URL.startswith("sqlite") else {}
 
-class BaseCamp(Base):
-    __tablename__ = "bases"
+engine = create_engine(settings.DATABASE_URL, connect_args=connect_args, pool_pre_ping=True)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), unique=True)
-    hq_level = Column(Integer, default=1)
-    gold = Column(Float, default=1000.0)
-    oil = Column(Float, default=500.0)
-    gold_capacity = Column(Float, default=5000.0)
-    oil_capacity = Column(Float, default=2500.0)
-    last_update = Column(DateTime, default=datetime.utcnow)
 
-class Building(Base):
-    __tablename__ = "buildings"
-
-    id = Column(Integer, primary_key=True, index=True)
-    base_id = Column(Integer, ForeignKey("bases.id"))
-    building_type = Column(String)  # gold_mine, oil_pump, barracks, defense_tower
-    level = Column(Integer, default=1)
-    position_x = Column(Integer, default=0)
-    position_y = Column(Integer, default=0)
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
