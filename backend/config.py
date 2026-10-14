@@ -10,6 +10,10 @@ class Settings:
     SECRET_KEY: str = os.getenv("SECRET_KEY", "super_secret_key")
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
     WEBAPP_URL: str = os.getenv("WEBAPP_URL", "https://your-frontend-url.onrender.com")
+    # Backup/restore ruxsat berilgan adminlar: ADMIN_IDS="123456,789012"
+    ADMIN_IDS: set = {
+        int(x) for x in os.getenv("ADMIN_IDS", "").replace(" ", "").split(",") if x.isdigit()
+    }
     # initData qancha vaqt (soniya) amal qiladi
     INIT_DATA_MAX_AGE: int = int(os.getenv("INIT_DATA_MAX_AGE", "86400"))
 
